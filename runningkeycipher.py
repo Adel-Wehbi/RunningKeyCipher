@@ -22,6 +22,7 @@ def get_arguments():
         '--action',
         dest='ACTION',
         choices=["encrypt", "decrypt"],
+        required=True,
         help="The operation to perform."
     )
     required.add_argument(
