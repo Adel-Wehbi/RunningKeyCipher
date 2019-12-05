@@ -5,14 +5,20 @@ import logging
 import os
 import io
 import sys
+import enum
 
 # constants
 BASE = ('A', ord('A'))
+MOD = 26
 
 # globals
 args = None
 logging.basicConfig(format='[%(asctime)s] %(name)s %(levelname)s: %(message)s')
 logger = logging.getLogger('RunningKeyCipher')
+
+class Action(enum.Enum):
+    ENCRYPT = 0
+    DECRYPT = 1
 
 def get_arguments():
     parser = argparse.ArgumentParser(description="Encrypts or decrypts alpha text using a provided Running Key.")
@@ -65,59 +71,56 @@ def eval_input(arg):
         return open(arg, mode='r')
     return io.StringIO(arg)
 
-def main():
-    global args
-    args = get_arguments()
-    if args.DEBUG:
-        logger.setLevel(logging.DEBUG)
+def perform(action, inputStream, keyStream, outputStream):
     logger.debug(f'Selected BASE {BASE[0]}({BASE[1]})')
     while True:
         # next source character
-        schar = args.INPUT.read(1)
-        logger.debug(f'Next source character: "{schar}"')
+        schar = inputStream.read(1)
         if not schar:
-            # end of file
-            logger.debug('Reached end of file. Stopping...')
-            args.OUTPUT.write('\n')
-            die()
+            # end of input
+            logger.debug('Reached end of input source stream. Stopping...')
+            return
         if not schar.isalpha():
             logger.debug(f'Ignoring source character: "{schar}"')
             continue
+        logger.debug(f'Next source character: "{schar}"')
         # next key character
-        kchar = args.KEY.read(1)
+        kchar = keyStream.read(1)
         while not kchar.isalpha():
             logger.debug(f'Ignoring key character: "{kchar}"')
-            kchar = args.KEY.read(1)
+            kchar = keyStream.read(1)
         logger.debug(f'Next key character: "{kchar}"')
         if not kchar:
             logger.error("Key shorter than Source! Stopping.")
-            die()
-        args.OUTPUT.write(encrypt(schar, kchar) if args.ACTION == 'encrypt' else decrypt(schar, kchar))
+            return
+        # capitalize characters
+        schar, kchar = schar.upper(), kchar.upper()
+        # ordinals of inputs
+        schar_val, kchar_val = ord(schar), ord(kchar)
+        # same for base character
+        base, base_val = BASE
+        shift = schar_val + kchar_val if action == Action.ENCRYPT else schar_val - kchar_val
+        # only for logging purposes
+        operation = '+' if action == Action.ENCRYPT else '-'
+        logger.debug(f'shift = {schar}({schar_val}) {operation} {kchar}({kchar_val}) = {shift}')
+        # output character
+        ochar_val = (MOD + shift) % MOD + base_val
+        ochar = chr(ochar_val)
+        logger.debug(f'({MOD} + {shift}) % {MOD} + {base}({base_val}) = {ochar}({ochar_val})')
+        outputStream.write(ochar)
 
-def encrypt(schar, kchar):
-    schar, kchar = schar.upper(), kchar.upper()
-    schar_val, kchar_val = get_vals(schar, kchar)
-    base, base_val = BASE
-    result_val = (schar_val + kchar_val) % 26 + base_val
-    result = chr(result_val)
-    logger.debug(f'encrypting char: ({schar}({schar_val}) + {kchar}({kchar_val})) % 26 + {base}({base_val}) = {result}({result_val})')
-    return result
-
-def decrypt(schar, kchar):
-    schar, kchar = schar.upper(), kchar.upper()
-    schar_val, kchar_val = get_vals(schar, kchar)
-    base, base_val = BASE
-    result_val = (26 + (schar_val - kchar_val)) % 26 + base_val
-    result = chr(result_val)
-    logger.debug(f'encrypting char: (26 + ({schar}({schar_val}) - {kchar}({kchar_val})) % 26 + {base}({base_val}) = {result}({result_val})')
-    return result
-
-def get_vals(first, second):
-    first_val = ord(first)
-    second_val = ord(second)
-    logger.debug(f'Ordinal of {first} is {first_val}')
-    logger.debug(f'Ordinal of {second} is {second_val}')
-    return first_val, second_val
+def main():
+    args = get_arguments()
+    if args.DEBUG:
+        logger.setLevel(logging.DEBUG)
+    action = Action.ENCRYPT if args.ACTION.upper() == 'ENCRYPT' else Action.DECRYPT
+    perform(action, args.INPUT, args.KEY, args.OUTPUT)
+    # new line for prettier console output
+    args.OUTPUT.write('\n')
+    # clean up
+    args.INPUT.close()
+    args.KEY.close()
+    args.OUTPUT.close()
 
 def die():
     # clean up
