@@ -12,7 +12,6 @@ BASE = ('A', ord('A'))
 MOD = 26
 
 # globals
-args = None
 logging.basicConfig(format='[%(asctime)s] %(name)s %(levelname)s: %(message)s')
 logger = logging.getLogger('RunningKeyCipher')
 
@@ -122,15 +121,6 @@ def main():
     args.KEY.close()
     args.OUTPUT.close()
 
-def die():
-    # clean up
-    logger.debug('Cleaning up')
-    args.INPUT.close()
-    args.KEY.close()
-    args.OUTPUT.close()
-    sys.exit()
-
 if __name__ == '__main__':
     main()
-else:
-    logger.warn("As of now, this script does NOT support imoprting!")
+    sys.exit()
