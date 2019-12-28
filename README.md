@@ -20,11 +20,10 @@ Required Arguments:
   -a {encrypt,decrypt}, --action {encrypt,decrypt}
                         The operation to perform.
   -i INPUT, --input INPUT
-                        Input text to encrypt/decrypt. Pass a text file (with leading ./, if in current
-                        dir) or the text itself. Required.
-  -k KEY, --key KEY
-                        Running Key Cipeher. Pass a text file (with leading ./, if in current dir) or
-                        the key itself. Has to be longer than source text. Required.
+                        Input text to encrypt/decrypt. Accepts a path to a text file or the text string
+                        itself. Required.
+  -k KEY, --key KEY     Running Key Cipeher. Accepts a path to a text file or the key string itself. Has
+                        to be longer than source text. Required.
 ```
 ## Example
 We will be using Isaac Asimov's "The Last Question" as a running key. Its text can be found online, as it is in the open domain. I got mine from [here](https://www.multivax.com/last_question.html "here"). Omit the title and start at "The last question was asked for the first time, half in jest, on May 21, 2061..."
