@@ -1,6 +1,8 @@
 # Running Key Cipher
 This is a python implementation of the known Running Key Cipher. It can be used to encrypt/decrypt any length of alpha text with a running key (a key of the same length or longer). Any alpha text can be used as key, such as a book or a poem.
 
+![](https://github.com/Adel-Wehbi/RunningKeyCipher/workflows/UnitTests/badge.svg)
+
 ## Usage
 ```
 $ python runningkeycipher.py -h
