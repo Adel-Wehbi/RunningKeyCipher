@@ -36,7 +36,7 @@ def get_arguments():
         dest="INPUT",
         type=eval_input,
         required=True,
-        help="Input text to encrypt/decrypt. Pass a text file (with leading ./, if in current dir) or the text itself. Required."
+        help="Input text to encrypt/decrypt. Accepts a path to a text file or the text string itself. Required."
     )
     required.add_argument(
         '-k',
@@ -44,7 +44,7 @@ def get_arguments():
         dest="KEY",
         type=eval_input,
         required=True,
-        help="Running Key Cipeher. Pass a text file (with leading ./, if in current dir) or the key itself. Has to be longer than source text. Required."
+        help="Running Key Cipeher. Accepts a path to a text file or the key string itself. Has to be longer than source text. Required."
     )
     parser.add_argument(
         '-o',
@@ -63,12 +63,9 @@ def get_arguments():
     return parser.parse_args()
 
 def eval_input(arg):
-    # if argument has a forward slash (or backward slash for windows), consider it a path
-    if os.path.sep in arg:
-        if not os.path.isfile(arg):
-            raise argparse.ArgumentTypeError(f"{arg} file does NOT exist!")
-        return open(arg, mode='r')
-    return io.StringIO(arg)
+    if not os.path.isfile(arg):
+        return io.StringIO(arg)
+    return open(arg, mode='r')
 
 def perform(action, inputStream, keyStream, outputStream):
     logger.debug(f'Selected BASE {BASE[0]}({BASE[1]})')
